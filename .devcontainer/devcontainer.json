@@ -1,0 +1,33 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+  "name": "Python 3",
+  "dockerFile": "Dockerfile",
+  "runArgs": [
+    "--gpus=all",
+    "--shm-size=5g",
+    "--ulimit",
+    "memlock=-1",
+    "--ulimit",
+    "stack=67108864"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash-login",
+        "terminal.integrated.profiles.linux.bash-login": {
+          "path": "bash",
+          "args": [
+            "-l"
+          ]
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "GitHub.copilot"
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}
