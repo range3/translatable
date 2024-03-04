@@ -54,7 +54,10 @@ RUN \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
 
-# RUN export DEBIAN_FRONTEND=noninteractive\
-#     && apt-get update \
-#     && apt-get install -y --no-install-recommends \
-#     && rm -rf /var/lib/apt/lists/*
+RUN export DEBIAN_FRONTEND=noninteractive\
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+      python3-dev \
+      libgl1-mesa-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
