@@ -59,5 +59,7 @@ RUN export DEBIAN_FRONTEND=noninteractive\
     && apt-get install -y --no-install-recommends \
       python3-dev \
       libgl1-mesa-dev \
+      libglib2.0-0 \
+      poppler-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
