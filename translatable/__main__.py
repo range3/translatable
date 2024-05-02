@@ -50,6 +50,14 @@ def main():
     translate_parser = subparsers.add_parser(
         "translate", help="translate text locally without DeepL"
     )
+    translate_parser.add_argument(
+        "-j",
+        "--json",
+        type=str,
+        help="input layout JSON file.",
+        required=True,
+    )
+
     merge_parser = subparsers.add_parser(
         "merge", help="merge translated text back to PDF"
     )
@@ -68,6 +76,17 @@ def main():
         required=True,
     )
 
+    all_parser = subparsers.add_parser(
+        "all", help="parse, translate, and merge"
+    )
+    all_parser.add_argument(
+        "-p",
+        "--pdf",
+        type=str,
+        help="input PDF file.",
+        required=True,
+    )
+
     args = parser.parse_args()
 
     if args.command == "parse":
@@ -77,9 +96,11 @@ def main():
     elif args.command == "from_deepl":
         tr.from_deepl_format(args.text, args.json)
     elif args.command == "translate":
-        print("translate")
+        tr.main_translate_text(args.json)
     elif args.command == "merge":
         tr.merge_pdf(args.pdf, args.json)
+    elif args.command == "all":
+        tr.parse_translate_merge(args.pdf)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import sys
 import re
 import layoutparser as lp
 import json
@@ -12,6 +13,10 @@ from reportlab.platypus.frames import Frame
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import Paragraph, KeepInFrame
 from reportlab.platypus.flowables import TopPadder
+from transformers import pipeline
+import textwrap
+from tqdm import tqdm
+import torch
 
 # constants
 DPI = 72
@@ -108,8 +113,31 @@ def from_deepl_format(input_text, input_json):
     print(json.dumps([l.to_dict() for l in layouts], indent=2))
 
 
-def merge_pdf(input_pdf, input_json):
+def translate_text(layouts):
+    device = 0 if torch.cuda.is_available() else -1
+    translator = pipeline(
+        "translation",
+        model="facebook/nllb-200-distilled-600M",
+        src_lang="eng_Latn",
+        tgt_lang="jpn_Jpan",
+        device=device,
+    )
+
+    for layout in tqdm(layouts, desc="Page", file=sys.stderr):
+        for block in tqdm(
+            layout, desc="Paragraph in Page", leave=False, file=sys.stderr
+        ):
+            ja_text = translator(textwrap.wrap(block.text, 1000), max_length=1000)
+            block.text = "".join(t["translation_text"] for t in ja_text)
+
+    return layouts
+
+def main_translate_text(input_json):
     layouts = load_layout_json(input_json)
+    layouts = translate_text(layouts)
+    print(json.dumps([l.to_dict() for l in layouts], indent=2))
+
+def merge_pdf(input_pdf, layouts):
     mask_stream = BytesIO()
     mask_canvas = Canvas(mask_stream, bottomup=1)
     default_style = ParagraphStyle(
@@ -184,3 +212,11 @@ def merge_pdf(input_pdf, input_json):
         layouts[0].page_data["height"],
     )
     al_pdf.write(input_pdf.with_name(f"{input_pdf.stem}_pr.pdf"))
+
+def main_merge_pdf(input_pdf, input_json):
+    merge_pdf(input_pdf, load_layout_json(input_json))
+
+def parse_translate_merge(input_pdf):
+    layouts = extract_paragrah_layouts(input_pdf)
+    layouts = translate_text(layouts)
+    merge_pdf(input_pdf, layouts)
