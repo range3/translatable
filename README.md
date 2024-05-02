@@ -1,3 +1,10 @@
+# translatable
+A tool to translate English papers into Japanese while preserving the layout.
+You can choose to translate using a local translation model or copy and paste English text extracted from DeepL.
+
+英語論文をレイアウトを保ったまま日本語に翻訳するツール。
+ローカルで翻訳モデルを使って翻訳するか、DeepLに抽出した英語テキストをコピペして翻訳するかを選択できます。
+
 # install
 ```console
 python3 -m venv .venv
