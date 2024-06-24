@@ -98,7 +98,7 @@ def main():
     elif args.command == "translate":
         tr.main_translate_text(args.json)
     elif args.command == "merge":
-        tr.merge_pdf(args.pdf, args.json)
+        tr.main_merge_pdf(args.pdf, args.json)
     elif args.command == "all":
         tr.parse_translate_merge(args.pdf)
 
