@@ -7,21 +7,28 @@ You can choose to translate using a local translation model or copy and paste En
 
 # install
 ```console
+docker-compose up --build
+docker-compose run --rm cli -h
+```
+
+# Usage
+```console
+docker-compose run -v $(pwd)/dir:/app/dir --rm cli parse -p dir/english.pdf > dir/en.json
+docker-compose run -v $(pwd)/dir:/app/dir --rm cli to_deepl -j dir/en.json > dir/en.txt
+docker-compose run -v $(pwd)/dir:/app/dir --rm cli from_deepl -t dir/ja.txt -j dir/en.json > dir/ja.json
+docker-compose run -v $(pwd)/dir:/app/dir --rm cli merge -p dir/survey-AT-for-flash-memories.pdf -j dir/ja.json
+```
+
+# install (dev)
+```console
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
-pip install layoutparser torchvision wheel numpy cython pillow==9.5.0
+pip install "layoutparser[layoutmodels]" torchvision wheel numpy cython pillow==9.5.0 pypdf reportlab transformers sentencepiece sacremoses
 pip install --no-build-isolation 'git+https://github.com/facebookresearch/detectron2.git@v0.6#egg=detectron2'
-pip install "layoutparser[layoutmodels]"
-pip instal pypdf
-pip install reportlab
-pip install transformers
-pip install sentencepiece
-pip install sacremoses
 ```
 
-
-# Usage
+# Usage (dev)
 ```console
 (.venv) $ python -m translatable -h
 usage: __main__.py [-h] {parse,to_deepl,from_deepl,translate,merge,all} ...
