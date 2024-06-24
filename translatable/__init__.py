@@ -8,6 +8,7 @@ from pathlib import Path
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus.frames import Frame
 from reportlab.lib.styles import ParagraphStyle
@@ -20,7 +21,9 @@ import torch
 
 # constants
 DPI = 72
-pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))
+default_font_name = "HeiseiKakuGo-W5"
+font_name = default_font_name
+pdfmetrics.registerFont(UnicodeCIDFont(font_name))
 
 
 def load_model():
@@ -137,12 +140,22 @@ def main_translate_text(input_json):
     layouts = translate_text(layouts)
     print(json.dumps([l.to_dict() for l in layouts], indent=2))
 
+def prepare_fonts():
+    fonts_dir = Path("fonts")
+    if not fonts_dir.exists():
+        return
+
+    for fonts_ttf in fonts_dir.glob("*.ttf"):
+        pdfmetrics.registerFont(TTFont(fonts_ttf.stem, fonts_ttf.name))
+        font_name = fonts_ttf.stem
+
 def merge_pdf(input_pdf, layouts):
+    prepare_fonts()
     mask_stream = BytesIO()
     mask_canvas = Canvas(mask_stream, bottomup=1)
     default_style = ParagraphStyle(
         name="Normal",
-        fontName="HeiseiKakuGo-W5",
+        fontName=default_font_name,
         fontSize=20,
         leading=20,
         firstLineIndent=20,
