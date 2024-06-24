@@ -1,7 +1,8 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python,linux,code
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,linux,code
+# Created by https://www.toptal.com/developers/gitignore/api/python,linux
+# Edit at https://www.toptal.com/developers/gitignore?templates=python,linux
 
-#!! ERROR: code is undefined. Use list command to see defined gitignore types !!#
+*.pdf
+fonts/
 
 ### Linux ###
 *~

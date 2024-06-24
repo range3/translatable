@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  cli:
+    build: .
+    shm_size: '5g'
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - capabilities: [gpu]
+    entrypoint: ["python3", "-m", "translatable"]
