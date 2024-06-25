@@ -1,3 +1,4 @@
+import os
 import sys
 import re
 import layoutparser as lp
@@ -18,12 +19,19 @@ from transformers import pipeline
 import textwrap
 from tqdm import tqdm
 import torch
+import deepl
 
 # constants
 DPI = 72
 default_font_name = "HeiseiKakuGo-W5"
 font_name = default_font_name
 pdfmetrics.registerFont(UnicodeCIDFont(font_name))
+
+
+def get_deepl_auth_key(auth_key=None):
+    if auth_key is not None:
+        return auth_key
+    return os.getenv("DEEPL_AUTH_KEY")
 
 
 def load_model():
@@ -86,6 +94,11 @@ def load_layout_json(json_path):
         return from_list_of_dict(json.load(f))
 
 
+def save_layout_json(layouts, json_path):
+    with open(json_path, "w") as f:
+        json.dump([l.to_dict() for l in layouts], f, indent=2)
+
+
 def parse_pdf(input_pdf):
     layouts = extract_paragrah_layouts(input_pdf)
     print(json.dumps([l.to_dict() for l in layouts], indent=2))
@@ -116,7 +129,14 @@ def from_deepl_format(input_text, input_json):
     print(json.dumps([l.to_dict() for l in layouts], indent=2))
 
 
-def translate_text(layouts):
+def translate_text(layouts, local=False, auth_key=None):
+    if local:
+        return translate_text_by_local_model(layouts)
+    else:
+        return translate_text_by_deepl_api(layouts, auth_key)
+
+
+def translate_text_by_local_model(layouts):
     device = 0 if torch.cuda.is_available() else -1
     translator = pipeline(
         "translation",
@@ -135,10 +155,42 @@ def translate_text(layouts):
 
     return layouts
 
-def main_translate_text(input_json):
+def main_character_count(input_pdf):
+    layouts = extract_paragrah_layouts(input_pdf)
+    blocks = [block for layout in layouts for block in layout]
+    print(sum(len(b.text) for b in blocks))
+
+def main_api_usage(auth_key=None):
+    translator = deepl.Translator(get_deepl_auth_key(auth_key))
+    print_deepl_api_usage(translator)
+
+def print_deepl_api_usage(translator):
+    usage = translator.get_usage()
+    if usage.any_limit_reached:
+        print("Translation limit reached.", file=sys.stderr)
+    if usage.character.valid:
+        print(
+            f"Character usage: {usage.character.count} of {usage.character.limit}",
+            file=sys.stderr,
+        )
+
+
+def translate_text_by_deepl_api(layouts, auth_key=None):
+    translator = deepl.Translator(get_deepl_auth_key(auth_key))
+    blocks = [block for layout in layouts for block in layout]
+    result = translator.translate_text(
+        [b.text for b in blocks], target_lang="JA", formality="more"
+    )
+    for block, r in zip(blocks, result):
+        block.text = r.text
+    return layouts
+
+
+def main_translate_text(input_json, local=False, auth_key=None):
     layouts = load_layout_json(input_json)
-    layouts = translate_text(layouts)
+    layouts = translate_text(layouts, local, auth_key)
     print(json.dumps([l.to_dict() for l in layouts], indent=2))
+
 
 def prepare_fonts():
     fonts_dir = Path("fonts")
@@ -148,6 +200,7 @@ def prepare_fonts():
     for fonts_ttf in fonts_dir.glob("*.ttf"):
         pdfmetrics.registerFont(TTFont(fonts_ttf.stem, fonts_ttf.name))
         font_name = fonts_ttf.stem
+
 
 def merge_pdf(input_pdf, layouts):
     prepare_fonts()
@@ -226,10 +279,27 @@ def merge_pdf(input_pdf, layouts):
     )
     al_pdf.write(input_pdf.with_name(f"{input_pdf.stem}_pr.pdf"))
 
+
 def main_merge_pdf(input_pdf, input_json):
     merge_pdf(input_pdf, load_layout_json(input_json))
 
-def parse_translate_merge(input_pdf):
+def parse_translate_merge(
+    input_pdf,
+    local=False,
+    auth_key=None,
+    keep_auxiliary=False,
+):
+    input_path = Path(input_pdf)
     layouts = extract_paragrah_layouts(input_pdf)
-    layouts = translate_text(layouts)
+    if keep_auxiliary:
+        save_layout_json(
+            layouts,
+            input_path.with_name(f"{input_path.stem}_layout_en.json"),
+        )
+    layouts = translate_text(layouts, local, auth_key)
+    if keep_auxiliary:
+        save_layout_json(
+            layouts,
+            input_path.with_name(f"{input_path.stem}_layout_ja.json"),
+        )
     merge_pdf(input_pdf, layouts)
