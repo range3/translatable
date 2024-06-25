@@ -1,6 +1,5 @@
 *.pdf
 dev.ipynb
-fonts/
 
 __pycache__/
 *.py[cod]

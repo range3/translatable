@@ -24,8 +24,7 @@ import deepl
 # constants
 DPI = 72
 default_font_name = "HeiseiKakuGo-W5"
-font_name = default_font_name
-pdfmetrics.registerFont(UnicodeCIDFont(font_name))
+pdfmetrics.registerFont(UnicodeCIDFont(default_font_name))
 
 
 def get_deepl_auth_key(auth_key=None):
@@ -155,14 +154,17 @@ def translate_text_by_local_model(layouts):
 
     return layouts
 
+
 def main_character_count(input_pdf):
     layouts = extract_paragrah_layouts(input_pdf)
     blocks = [block for layout in layouts for block in layout]
     print(sum(len(b.text) for b in blocks))
 
+
 def main_api_usage(auth_key=None):
     translator = deepl.Translator(get_deepl_auth_key(auth_key))
     print_deepl_api_usage(translator)
+
 
 def print_deepl_api_usage(translator):
     usage = translator.get_usage()
@@ -195,20 +197,29 @@ def main_translate_text(input_json, local=False, auth_key=None):
 def prepare_fonts():
     fonts_dir = Path("fonts")
     if not fonts_dir.exists():
-        return
+        return []
 
+    fonts = []
     for fonts_ttf in fonts_dir.glob("*.ttf"):
-        pdfmetrics.registerFont(TTFont(fonts_ttf.stem, fonts_ttf.name))
-        font_name = fonts_ttf.stem
+        pdfmetrics.registerFont(TTFont(fonts_ttf.stem, fonts_ttf))
+        fonts.append(fonts_ttf.stem)
+
+    return fonts
 
 
 def merge_pdf(input_pdf, layouts):
-    prepare_fonts()
+    fonts = prepare_fonts()
+    if len(fonts) > 0:
+        font_name = fonts[0]
+    else:
+        font_name = default_font_name
+
     mask_stream = BytesIO()
     mask_canvas = Canvas(mask_stream, bottomup=1)
+    mask_canvas.setFont(font_name, 20)
     default_style = ParagraphStyle(
         name="Normal",
-        fontName=default_font_name,
+        fontName=font_name,
         fontSize=20,
         leading=20,
         firstLineIndent=20,
@@ -258,7 +269,6 @@ def merge_pdf(input_pdf, layouts):
     src_pdf2 = PdfReader(input_pdf)
     ja_pdf = PdfWriter()
     al_pdf = PdfWriter()
-    pr_pdf = PdfWriter()
 
     # merge
     for pdf_page, orig_page, mask_page in zip(
@@ -282,6 +292,7 @@ def merge_pdf(input_pdf, layouts):
 
 def main_merge_pdf(input_pdf, input_json):
     merge_pdf(input_pdf, load_layout_json(input_json))
+
 
 def parse_translate_merge(
     input_pdf,
