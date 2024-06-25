@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   cli:
-    build: .
+    image: ghcr.io/range3/translatable:master
+    # build: .
     shm_size: '5g'
     ulimits:
       memlock: -1
