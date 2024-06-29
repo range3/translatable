@@ -8,13 +8,28 @@ def main():
         dest="command", required=True, help="sub-command"
     )
 
-    count_parser = subparsers.add_parser("count", help="count characters")
-    count_parser.add_argument(
+    all_parser = subparsers.add_parser("all", help="parse, translate, then merge")
+    all_parser.add_argument(
         "-p",
         "--pdf",
         type=str,
         help="input PDF file.",
         required=True,
+    )
+    all_parser.add_argument(
+        "--local",
+        help="use local translation model",
+        action="store_true",
+    )
+    all_parser.add_argument(
+        "--auth-key",
+        type=str,
+        help="DeepL API key ( DEEPL_AUTH_KEY environ can also be specified ).",
+    )
+    all_parser.add_argument(
+        "--keep-auxiliary",
+        action="store_true",
+        help="keep auxiliary files",
     )
 
     api_usage_parser = subparsers.add_parser("api_usage", help="print DeepL API usage")
@@ -23,6 +38,16 @@ def main():
         type=str,
         help="DeepL API key ( DEEPL_AUTH_KEY environ can also be specified ).",
     )
+
+    count_parser = subparsers.add_parser("count", help="count characters of the given PDF")
+    count_parser.add_argument(
+        "-p",
+        "--pdf",
+        type=str,
+        help="input PDF file.",
+        required=True,
+    )
+
 
     parse_parser = subparsers.add_parser(
         "parse", help="parse PDF file, extract layout and text as JSON"
@@ -64,7 +89,7 @@ def main():
         required=True,
     )
 
-    translate_parser = subparsers.add_parser("translate", help="translate text")
+    translate_parser = subparsers.add_parser("translate", help="translate text in the layout JSON file")
     translate_parser.add_argument(
         "-j",
         "--json",
@@ -84,7 +109,7 @@ def main():
     )
 
     merge_parser = subparsers.add_parser(
-        "merge", help="merge translated text back to PDF"
+        "merge", help="merge translated JSON back to PDF"
     )
     merge_parser.add_argument(
         "-j",
@@ -99,30 +124,6 @@ def main():
         type=str,
         help="input PDF file.",
         required=True,
-    )
-
-    all_parser = subparsers.add_parser("all", help="parse, translate, then merge")
-    all_parser.add_argument(
-        "-p",
-        "--pdf",
-        type=str,
-        help="input PDF file.",
-        required=True,
-    )
-    all_parser.add_argument(
-        "--local",
-        help="use local translation model",
-        action="store_true",
-    )
-    all_parser.add_argument(
-        "--auth-key",
-        type=str,
-        help="DeepL API key ( DEEPL_AUTH_KEY environ can also be specified ).",
-    )
-    all_parser.add_argument(
-        "--keep-auxiliary",
-        action="store_true",
-        help="keep auxiliary files",
     )
 
     args = parser.parse_args()
