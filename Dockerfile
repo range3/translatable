@@ -58,8 +58,3 @@ COPY --from=build /home/$USER_NAME/.local /home/$USER_NAME/.local
 COPY --from=build /app /app
 
 ENV PATH=$PATH:/home/$USER_NAME/.local/bin
-
-# download models
-RUN python3 -m translatable -h
-
-ENTRYPOINT ["python3", "-m", "translatable"]
