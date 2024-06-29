@@ -12,32 +12,44 @@ You can choose from the following three methods of translation.
 - ローカルで翻訳モデルを使う
 
 # install
-```console
-docker-compose up --build
-docker-compose run --rm cli -h
+```bash
+# GPU (docker --gpus) が使用可能の場合
+# GPU (docker --gpus) if available
+docker compose up gpu -d
+
+# CPUのみの場合
+# CPU only
+docker compose up cpu -d
 ```
 
 # Usage
-```console
-# use DeepL API
-export DEEPL_AUTH_KEY=YOUR_DEEPL_AUTH_KEY
-docker-compose run -v $(pwd)/dir:/app/dir --rm cli all -p dir/english.pdf
+初回実行時に機械学習モデルのダウンロードが行われ、コンテナ内にキャッシュされます。  
+The machine learning model is downloaded and cached in the container at the first run.
 
-# use local translation model
-docker-compose run -v $(pwd)/dir:/app/dir --rm cli all -p dir/english.pdf --local
-
-# Copy and paste the extracted English text into DeepL
-docker-compose run -v $(pwd)/dir:/app/dir --rm cli parse -p dir/english.pdf > dir/en.json
-docker-compose run -v $(pwd)/dir:/app/dir --rm cli to_deepl -j dir/en.json > dir/en.txt
-docker-compose run -v $(pwd)/dir:/app/dir --rm cli from_deepl -t dir/ja.txt -j dir/en.json > dir/ja.json
-docker-compose run -v $(pwd)/dir:/app/dir --rm cli merge -p dir/english.pdf -j dir/ja.json
-
-
-# count characters of the given PDF
-docker-compose run -v $(pwd)/dir:/app/dir --rm cli count -p dir/english.pdf
+```bash
+# show help
+docker compose exec gpu python3 -m translatable -h
 
 # show DeepL api usage
-docker-compose run --rm cli api_usage # --auth-key or DEEPL_AUTH_KEY env is required
+docker compose exec gpu api_usage
+
+# translate English PDF using DeepL API
+docker compose exec gpu all -p dir/english.pdf
+
+# translate English PDF using local translation model
+docker compose exec gpu all -p dir/english.pdf --local
+
+# Copy and paste the extracted English text into DeepL
+docker compose exec gpu parse -p dir/english.pdf > dir/en.json
+docker compose exec gpu to_deepl -j dir/en.json > dir/en.txt
+docker compose exec gpu from_deepl -t dir/ja.txt -j dir/en.json > dir/ja.json
+docker compose exec gpu merge -p dir/english.pdf -j dir/ja.json
+
+# count characters of the given PDF
+docker compose exec gpu count -p dir/english.pdf
+
+# stop the container
+docker compose stop
 ```
 
 # install (dev)

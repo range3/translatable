@@ -1,9 +1,17 @@
-version: '3.8'
+x-cli: &x-cli
+  image: ghcr.io/range3/translatable:master
+  # build: .
+  volumes:
+    - ./data:/app/data
+  env_file:
+    - .env
+  command: ["sh", "-c", "while true; do sleep 30; done"]
 
 services:
-  cli:
-    image: ghcr.io/range3/translatable:master
-    # build: .
+  cpu:
+    <<: *x-cli
+  gpu:
+    <<: *x-cli
     shm_size: '5g'
     ulimits:
       memlock: -1
@@ -13,4 +21,3 @@ services:
         reservations:
           devices:
           - capabilities: [gpu]
-    entrypoint: ["python3", "-m", "translatable"]
