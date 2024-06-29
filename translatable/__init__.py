@@ -3,6 +3,8 @@ import sys
 import re
 import layoutparser as lp
 import json
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.functional")
 from copy import deepcopy
 from io import BytesIO
 from pathlib import Path
@@ -52,7 +54,9 @@ def coalesce_nearby_textblock(layout: lp.Layout, threshold=0.8):
     return lp.Layout(blocks)
 
 
-def extract_paragrah_layouts(pdf_path, dpi=DPI, model=load_model()):
+def extract_paragrah_layouts(pdf_path, dpi=DPI, model=None):
+    if model is None:
+        model = load_model()
     pdf_layouts, pdf_images = lp.load_pdf(pdf_path, load_images=True, dpi=DPI)
 
     paragraph_layouts = []
