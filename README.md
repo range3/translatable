@@ -12,6 +12,9 @@ You can choose from the following three methods of translation.
 - ローカルで翻訳モデルを使う
 
 # install
+Set the `.env` file to DeepL API key. Please refer to `.env.example`.  
+`.env`ファイルにDeepL APIキーを設定してください。`.env.example`を参考にしてください。
+
 ```bash
 # GPU (docker --gpus) if available
 docker compose up gpu -d
@@ -21,35 +24,39 @@ docker compose up cpu -d
 ```
 
 # Usage
-The machine learning model is downloaded and cached in the container at the first run.  
-初回実行時に機械学習モデルのダウンロードが行われ、コンテナ内にキャッシュされます。
-
 Place the PDF file you wish to translate in the `./data` directory. This directory is bound to the `/app/data` directory in the container.  
-`./data`ディレクトリに翻訳したいPDFファイルを置いてください。このディレクトリはコンテナ内の`/app/data`ディレクトリにバインドされています。
+The machine learning model is downloaded and cached in the container at the first run.  
+
+`./data`ディレクトリに翻訳したいPDFファイルを置いてください。
+このディレクトリはコンテナ内の`/app/data`ディレクトリにバインドされています。  
+初回実行時に機械学習モデルのダウンロードが行われ、コンテナ内にキャッシュされます。  
 
 ```bash
 cd /path/to/translatable
 
+# set alias for easy use
+alias translatable="docker compose exec gpu python3 -m translatable"
+
 # show help
-docker compose exec gpu python3 -m translatable -h
+translatable -h
 
 # show DeepL api usage
-docker compose exec gpu api_usage
+translatable api_usage
 
 # translate English PDF using DeepL API
-docker compose exec gpu all -p data/english.pdf
+translatable all -p data/english.pdf
 
 # translate English PDF using local translation model
-docker compose exec gpu all -p data/english.pdf --local
+translatable all -p data/english.pdf --local
 
 # Copy and paste the extracted English text into DeepL
-docker compose exec gpu parse -p data/english.pdf > data/en.json
-docker compose exec gpu to_deepl -j data/en.json > data/en.txt
-docker compose exec gpu from_deepl -t data/ja.txt -j data/en.json > data/ja.json
-docker compose exec gpu merge -p data/english.pdf -j data/ja.json
+translatable parse -p data/english.pdf > data/en.json
+translatable to_deepl -j data/en.json > data/en.txt
+translatable from_deepl -t data/ja.txt -j data/en.json > data/ja.json
+translatable merge -p data/english.pdf -j data/ja.json
 
 # count characters of the given PDF
-docker compose exec gpu count -p data/english.pdf
+translatable count -p data/english.pdf
 
 # stop the container
 docker compose stop
